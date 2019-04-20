@@ -2,15 +2,16 @@ import cv2
 import sys
 import numpy as np
 import glob
-from Emotiondetection.em_model import EMR
+from Emotiondetection.TFLearn.model import EMR
 from ImageLoader import imageload 
+import os
 
 network = EMR()
 
 EMOTIONS = ['angry', 'disgusted', 'fearful', 'happy', 'sad', 'surprised', 'neutral']
 
 # initialize the cascade
-cascade_classifier = cv2.CascadeClassifier('./Emotiondetection/haarcascade_files/haarcascade_frontalface_default.xml')  
+cascade_classifier = cv2.CascadeClassifier('./Emotiondetection/TFLearn/haarcascade_frontalface_default.xml')  
 
 def format_image(image):
     """
@@ -58,7 +59,11 @@ feelings_faces = []
 
 # append the list with the emoji images
 for index, emotion in enumerate(EMOTIONS):
-    feelings_faces.append(cv2.imread('./Emotiondetection/emojis/' + emotion + '.png', -1))
+    if os.path.isfile('./Emotiondetection/TFLearn/emojis/' + emotion + '.png'):
+        feelings_faces.append(cv2.imread('./Emotiondetection/TFLearn/emojis/' + emotion + '.png', -1))
+    else:
+        print('no emojis')
+    
 
 images = [imageload.cv_imread(file) for file in glob.glob('images/*')]
 print(np.array(images).shape)
@@ -69,7 +74,7 @@ for frame in images:
 
     # Again find haar cascade to draw bounding box around face
     # ret, frame = cap.read()
-    facecasc = cv2.CascadeClassifier('./Emotiondetection/haarcascade_files/haarcascade_frontalface_default.xml')
+    facecasc = cv2.CascadeClassifier('./Emotiondetection/TFLearn/haarcascade_frontalface_default.xml')
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = facecasc.detectMultiScale(gray, 1.3, 5)
 
@@ -93,7 +98,8 @@ for frame in images:
             # in most cases it is 0, so, we assign the roi to the emoji
             # you could also do:
             # frame[200:320,10:130,c] = frame[200:320, 10:130, c] * (1.0 - face_image[:, :, 3] / 255.0)
-            frame[200:320, 10:130, c] = face_image[:,:,c] * (face_image[:, :, 3] / 255.0) +  frame[200:320, 10:130, c] * (1.0 - face_image[:, :, 3] / 255.0)
+            if frame.shape[0] > 320:
+                frame[200:320, 10:130, c] = face_image[:,:,c] * (face_image[:, :, 3] / 255.0) +  frame[200:320, 10:130, c] * (1.0 - face_image[:, :, 3] / 255.0)
 
     if not len(faces) > 0:
         # do nothing if no face is detected

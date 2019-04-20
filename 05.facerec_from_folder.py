@@ -89,11 +89,12 @@ for frame in images:
 
     # Display the resulting image
     cv2.imshow('Video', frame)
+    #cv2.imshow('Video', loader.image_resize(frame, height = 800))
 
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey() & 0xFF == ord('q'):
         continue
 
 # Release handle to the webcam
-video_capture.release()
+# video_capture.release()
 cv2.destroyAllWindows()
